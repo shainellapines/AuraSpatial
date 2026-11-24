@@ -1,70 +1,32 @@
-# AuraSpatial — Xcode Project Source
+# AuraSpatial
 
-This is the full Model/View/Controller source for the AuraSpatial midterm build, matching the SRS (`AuraSpatial SRS v2.0`) and the verified Figma Make prototype — including its actual visual design (colors, glow treatment, category color-coding, card styles), not just its screens and navigation.
+An iOS spatial audio app built with SwiftUI. Place sounds around you on a canvas and hear them in 3D, save layouts, run Focus and Sleep session timers, and share soundscapes to the Community feed. It uses an MVC structure with Firebase Authentication and Cloud Firestore, and falls back to on-device storage when Firebase isn't set up.
 
-## How to turn this into a real Xcode project
+See [CHANGES.md](CHANGES.md) for everything added since the midterm build.
 
-1. In Xcode: **File → New → Project → iOS → App**. Name it `AuraSpatial`, interface: **SwiftUI**, language: **Swift**. Set the minimum deployment target to **iOS 17.0** (required for `@Observable`, `PhaseAnimator`, `.sensoryFeedback`).
-2. Delete the two files Xcode generates by default: `AuraSpatialApp.swift` and `ContentView.swift`.
-3. Drag the `App`, `Models`, `Repositories`, `Audio`, `Controllers`, `Views`, and `Utilities` folders from this package into your new project's navigator (check **"Copy items if needed"** and **"Create groups"**).
-4. Build (⌘B). Fix anything Xcode's Swift compiler flags — I've written this carefully but this environment has no macOS SDK, so it hasn't been compiler-verified.
-5. Run in Simulator. Screenshot each of the 9 screens for your submission once you're happy with it.
+## How to open and run
+
+1. On a Mac, open `AuraSpatial.xcodeproj` in Xcode (iOS 17.0 or later is required for `@Observable`, `PhaseAnimator` and `.sensoryFeedback`).
+2. Wait for Swift Package Manager to finish fetching the Firebase packages.
+3. **Firebase (optional):** download `GoogleService-Info.plist` for the iOS app from the Firebase console and put it in the inner `AuraSpatial/` folder. It is not in this repo on purpose (see `.gitignore`). Without it, the app runs with on-device storage. Full steps: [FIREBASE_SETUP.md](FIREBASE_SETUP.md).
+4. **Background audio (one-time):** AuraSpatial target > Signing & Capabilities > + Capability > Background Modes > check **Audio, AirPlay, and Picture in Picture**.
+5. Build and run in the Simulator or on a device.
 
 ## Folder structure
 
 ```
+AuraSpatial.xcodeproj/        Xcode project (folder syncing: new files are added automatically)
 AuraSpatial/
-├── App/
-│   └── AuraSpatialApp.swift          — app entry point, injects AuthController, sets app-wide violet tint + dark scheme
-├── Models/                            — plain Codable structs/enums (the "Model" in MVC)
-│   ├── Enums.swift                    — WaveformType, SoundCategory (Nature/Ambient/Rhythm)
-│   ├── SoundAsset.swift               — Sound Library catalog (procedurally synthesized, no bundled audio)
-│   ├── SoundNode.swift                — one placed sound (position, volume, pan)
-│   ├── Soundscape.swift               — a saved/shared arrangement of nodes
-│   └── UserProfile.swift
-├── Repositories/                      — protocol + local implementation per FR-4.3/FR-1.2/FR-5.3
-│   ├── SoundscapeRepository.swift     — protocol (swap for Firebase in finals with zero View changes)
-│   ├── LocalSoundscapeStore.swift     — JSON-file persistence for Saved Layouts
-│   ├── AuthRepository.swift
-│   ├── LocalAuthStore.swift           — simulated session via UserDefaults
-│   ├── CommunityRepository.swift
-│   └── LocalCommunityStore.swift      — bundled sample Community Feed data
-├── Audio/                             — the advanced-SwiftUI/AVFAudio showcase
-│   ├── ToneGenerator.swift            — procedural sine/triangle/noise buffer synthesis
-│   └── SpatialAudioEngine.swift       — AVAudioEngine + AVAudioEnvironmentNode spatial mixing
-├── Controllers/                       — @Observable classes (the "Controller" in MVC; see SRS 3.4)
-│   ├── AuthController.swift
-│   ├── CanvasController.swift
-│   ├── SavedLayoutsController.swift
-│   └── CommunityController.swift
-├── Views/                             — one SwiftUI View struct per file/screen
-│   ├── Root/
-│   │   ├── RootView.swift             — routes auth flow vs. main tab shell
-│   │   └── RootTabView.swift          — TabView: Canvas · Community · Saved, violet-tinted dark tab bar
-│   ├── Auth/
-│   │   ├── WelcomeView.swift          — Screen 1 — glowing icon, orbit preview graphic
-│   │   ├── SignUpView.swift           — Screen 2 — custom dark fields
-│   │   └── LogInView.swift            — Screen 3 — custom dark fields
-│   ├── Canvas/
-│   │   ├── CanvasView.swift           — Screen 4 (main screen) — orbit guide rings, floating add button, "Mix · <name>" bar
-│   │   ├── SoundNodeView.swift        — reusable node component — category-colored glowing ring
-│   │   └── MixerView.swift            — Screen 6 (sheet) — category-colored icon, themed sliders
-│   ├── Library/
-│   │   └── SoundLibraryView.swift     — Screen 5 (sheet) — category-colored rows
-│   ├── Saved/
-│   │   └── SavedLayoutsView.swift     — Screen 7 — orbit-glyph thumbnails, teal/red icon buttons
-│   ├── Community/
-│   │   ├── CommunityFeedView.swift    — Screen 8
-│   │   └── CommunitySoundscapeCardView.swift — reusable card — animated waveform + play button
-│   └── Profile/
-│       └── ProfileView.swift          — Screen 9 (sheet)
-└── Utilities/
-    ├── Theme.swift                    — design tokens: Color palette + SoundCategory accent colors + glow modifier
-    ├── ButtonStyles.swift             — primary/secondary pill buttons + floating action button style
-    ├── OrbitGlyph.swift               — the recurring "orbit" brand mark (Welcome + Saved Layouts thumbnails)
-    ├── WaveformGlyph.swift            — small waveform icon + the animated Community-card waveform background
-    ├── PillBadge.swift                — colored capsule label + small icon-square buttons
-    └── AuraLabeledField.swift         — the dark rounded field + uppercase caption used on auth screens
+├── App/                      app entry point
+├── Models/                   Codable structs and enums (sounds, nodes, soundscapes, profile, settings, stats, session timer)
+├── Repositories/             protocols + local and Firebase implementations; Backend.swift picks one at launch
+├── Audio/                    procedural sound synthesis and AVAudioEngine spatial mixing
+├── Controllers/              @Observable controllers (auth, canvas, saved layouts, community, settings, routing)
+├── Views/                    one SwiftUI view per screen: Auth, Canvas, Library, Saved, Community, Profile, Root
+└── Utilities/                theme tokens, button styles, glyphs, mini-map, toast, formatting
+Firebase/firestore.rules      Firestore security rules
+CHANGES.md                    what changed since the midterm
+FIREBASE_SETUP.md             step-by-step Firebase setup
 ```
 
 ## Visual design system — matched to the actual Figma prototype

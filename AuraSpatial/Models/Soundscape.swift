@@ -43,7 +43,7 @@ struct Soundscape: Identifiable, Codable, Hashable {
 
     /// A copy suitable for "forking" into the current user's own Saved
     /// Layouts (FR-5.2): a fresh identity, reset community metadata.
-    func forked() -> Soundscape {
+    func fork() -> Soundscape {
         Soundscape(
             name: name,
             nodes: nodes,
@@ -53,5 +53,39 @@ struct Soundscape: Identifiable, Codable, Hashable {
             likeCount: 0,
             forkCount: 0
         )
+    }
+}
+
+extension Soundscape {
+    /// How many sounds of each category this layout contains.
+    var categoryCounts: [SoundCategory: Int] {
+        var counts: [SoundCategory: Int] = [:]
+        for node in nodes {
+            if let category = SoundAsset.resolve(node)?.category {
+                counts[category, default: 0] += 1
+            }
+        }
+        return counts
+    }
+
+    /// The category with the most sounds, used to tint cards.
+    var dominantCategory: SoundCategory? {
+        let counts = categoryCounts
+        guard !counts.isEmpty else { return nil }
+        return SoundCategory.allCases.max { (counts[$0] ?? 0) < (counts[$1] ?? 0) }
+    }
+
+    /// Rewrites every node's asset id to the current fixed id - repairs
+    /// layouts saved before ids were fixed.
+    func repairingAssetIDs() -> Soundscape {
+        var copy = self
+        copy.nodes = nodes.map { node in
+            var fixed = node
+            if let asset = SoundAsset.resolve(node) {
+                fixed.soundAssetID = asset.id
+            }
+            return fixed
+        }
+        return copy
     }
 }

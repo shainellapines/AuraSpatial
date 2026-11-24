@@ -6,3 +6,6 @@ xcuserdata/
 DerivedData/
 build/
 *.xcuserstate
+
+# Firebase config (download your own from the Firebase console)
+GoogleService-Info.plist

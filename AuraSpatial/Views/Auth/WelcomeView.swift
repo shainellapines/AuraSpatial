@@ -41,15 +41,28 @@ struct WelcomeView: View {
                 Spacer()
 
                 VStack(spacing: 14) {
-                    NavigationLink("Log In") {
+                    NavigationLink {
                         LogInView()
+                    } label: {
+                        Text("Log In")
+                            .font(.system(.headline, design: .rounded).weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.auraViolet, in: Capsule())
+                            .foregroundStyle(.white)
                     }
-                    .buttonStyle(.primaryAura)
 
-                    NavigationLink("Sign Up") {
+                    NavigationLink {
                         SignUpView()
+                    } label: {
+                        Text("Sign Up")
+                            .font(.system(.headline, design: .rounded).weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color.white.opacity(0.06), in: Capsule())
+                            .foregroundStyle(.white)
+                            .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
                     }
-                    .buttonStyle(.secondaryAura)
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 40)

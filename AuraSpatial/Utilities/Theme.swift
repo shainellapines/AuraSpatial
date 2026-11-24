@@ -11,25 +11,31 @@
 
 import SwiftUI
 
-extension Color {
+// Declared on `ShapeStyle where Self == Color` (rather than plain `Color`) so
+// the leading-dot form resolves in `ShapeStyle` contexts too — e.g.
+// `.foregroundStyle(.auraTextSecondary)` — while still being reachable as
+// `Color.auraSurface` for `.fill`/`.background` and plain `Color` values.
+extension ShapeStyle where Self == Color {
     /// Page background — near-black with the faintest violet cast.
-    static let auraBackground = Color(red: 0.031, green: 0.031, blue: 0.055)
+    static var auraBackground: Color { Color(red: 0.031, green: 0.031, blue: 0.055) }
     /// Card/sheet surface, one step up from the background.
-    static let auraSurface = Color(red: 0.086, green: 0.086, blue: 0.125)
+    static var auraSurface: Color { Color(red: 0.086, green: 0.086, blue: 0.125) }
     /// A slightly brighter surface for nested/elevated content.
-    static let auraSurfaceElevated = Color(red: 0.114, green: 0.114, blue: 0.157)
+    static var auraSurfaceElevated: Color { Color(red: 0.114, green: 0.114, blue: 0.157) }
     /// Primary brand accent — used for the listener, primary actions, and
     /// the "Ambient" sound category.
-    static let auraViolet = Color(red: 0.545, green: 0.486, blue: 0.988)
+    static var auraViolet: Color { Color(red: 0.545, green: 0.486, blue: 0.988) }
     /// Secondary accent — the "Nature" sound category, and one of the two
     /// Community waveform tints.
-    static let auraTeal = Color(red: 0.204, green: 0.827, blue: 0.749)
+    static var auraTeal: Color { Color(red: 0.204, green: 0.827, blue: 0.749) }
     /// Tertiary accent — the "Rhythm" sound category, and Community node-count pills.
-    static let auraAmber = Color(red: 0.937, green: 0.678, blue: 0.278)
+    static var auraAmber: Color { Color(red: 0.937, green: 0.678, blue: 0.278) }
     /// Destructive actions.
-    static let auraDanger = Color(red: 0.914, green: 0.408, blue: 0.408)
+    static var auraDanger: Color { Color(red: 0.914, green: 0.408, blue: 0.408) }
     /// Secondary text.
-    static let auraTextSecondary = Color(red: 0.635, green: 0.635, blue: 0.686)
+    static var auraTextSecondary: Color { Color(red: 0.635, green: 0.635, blue: 0.686) }
+    /// A fourth accent, offered as a profile avatar color.
+    static var auraRose: Color { Color(red: 0.957, green: 0.447, blue: 0.627) }
 }
 
 /// The three Sound Library categories seen in the prototype's canvas node
@@ -40,6 +46,26 @@ extension SoundCategory {
         case .nature: .auraTeal
         case .ambient: .auraViolet
         case .rhythm: .auraAmber
+        }
+    }
+}
+
+extension AvatarColor {
+    var color: Color {
+        switch self {
+        case .violet: .auraViolet
+        case .teal: .auraTeal
+        case .amber: .auraAmber
+        case .rose: .auraRose
+        }
+    }
+}
+
+extension SessionMode {
+    var tint: Color {
+        switch self {
+        case .focus: .auraTeal
+        case .sleep: .auraViolet
         }
     }
 }

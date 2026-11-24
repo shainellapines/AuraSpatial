@@ -12,9 +12,10 @@
 
 import Foundation
 
-final class LocalSoundscapeStore: SoundscapeRepository {
+actor LocalSoundscapeStore: SoundscapeRepository {
     private let fileURL: URL
     private let fileManager: FileManager
+    private var cachedData: [Soundscape]?
 
     init(fileManager: FileManager = .default) {
         self.fileManager = fileManager
@@ -23,15 +24,27 @@ final class LocalSoundscapeStore: SoundscapeRepository {
     }
 
     func fetchAll() async throws -> [Soundscape] {
+        // Return cached data if available
+        if let cached = cachedData {
+            return cached
+        }
+        
+        // Check if file exists (fast operation)
         guard fileManager.fileExists(atPath: fileURL.path) else {
+            cachedData = Self.seedData
             return Self.seedData
         }
+        
+        // Read and decode (actor already ensures thread safety)
         let data = try Data(contentsOf: fileURL)
-        return try JSONDecoder.auraSpatial.decode([Soundscape].self, from: data)
+        let decoded = try JSONDecoder.auraSpatial.decode([Soundscape].self, from: data)
+        cachedData = decoded
+        return decoded
     }
 
     func save(_ soundscape: Soundscape) async throws {
         var all = try await fetchAll()
+        
         if let index = all.firstIndex(where: { $0.id == soundscape.id }) {
             var updated = soundscape
             updated.updatedAt = Date()
@@ -39,17 +52,21 @@ final class LocalSoundscapeStore: SoundscapeRepository {
         } else {
             all.append(soundscape)
         }
-        try write(all)
+        
+        try await write(all)
+        cachedData = all
     }
 
     func delete(id: UUID) async throws {
         var all = try await fetchAll()
         all.removeAll { $0.id == id }
-        try write(all)
+        try await write(all)
+        cachedData = all
     }
 
-    private func write(_ soundscapes: [Soundscape]) throws {
+    private func write(_ soundscapes: [Soundscape]) async throws {
         let data = try JSONEncoder.auraSpatial.encode(soundscapes)
+        // Actor already provides isolation, no need for Task.detached
         try data.write(to: fileURL, options: .atomic)
     }
 
